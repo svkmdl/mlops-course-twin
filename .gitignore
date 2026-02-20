@@ -29,6 +29,9 @@ yarn-error.log*
 .out/
 out/
 
+# tutorial stuff
+week2/
+
 # production/build outputs
 /build
 /dist
