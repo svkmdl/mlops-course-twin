@@ -32,6 +32,9 @@ out/
 # tutorial stuff
 week2/
 
+# conversation memory files
+memory/*
+
 # production/build outputs
 /build
 /dist
