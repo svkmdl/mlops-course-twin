@@ -8,10 +8,12 @@ from typing import Optional, List, Dict
 import json
 import uuid
 from datetime import datetime
-from pathlib import Path
+import boto3
+from botocore.exceptions import ClientError
+from context import prompt
 
 # Load environment variables
-load_dotenv(override=True)
+load_dotenv()
 
 app = FastAPI()
 
@@ -20,38 +22,58 @@ origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 # OpenAI client initialization
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Memory directory
-MEMORY_DIR = Path("../memory")
-MEMORY_DIR.mkdir(exist_ok=True)
+# Memory storage configuration
+USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
+S3_BUCKET = os.getenv("S3_BUCKET", "")
+MEMORY_DIR = os.getenv("MEMORY_DIR", "../memory")
 
-# Load personality details
-def load_personality():
-    with open("me.txt", "r", encoding="utf-8") as f:
-        return f.read().strip()
+# Initialize S3 client if needed
+if USE_S3:
+    s3_client = boto3.client("s3")
 
-PERSONALITY = load_personality()
+# Memory management functions
+def get_memory_path(session_id: str) -> str:
+    return f"{session_id}.json"
 
-# Memory functions
 def load_conversation(session_id: str) -> List[Dict]:
-    """Load conversation history from file"""
-    memory_file = MEMORY_DIR / f"{session_id}.json"
-    if memory_file.exists():
-        with open(memory_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+    """Load conversation history from storage"""
+    if USE_S3:
+        try:
+            response = s3_client.get_object(Bucket=S3_BUCKET, Key=get_memory_path(session_id))
+            return json.loads(response['Body'].read().decode('utf-8'))
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                return []
+            raise
+    else:
+        # Local file storage
+        file_path = os.path.join(MEMORY_DIR, get_memory_path(session_id))
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                return json.load(f)
+        return []
 
-def save_conversation(session_id: str, conversation: List[Dict]):
-    """Save conversation history to file"""
-    memory_file = MEMORY_DIR / f"{session_id}.json"
-    with open(memory_file, "w", encoding="utf-8") as f:
-        json.dump(conversation, f, ensure_ascii=False, indent=2)
+def save_conversation(session_id: str, messages: List[Dict]):
+    """Save conversation history to storage"""
+    if USE_S3:
+        s3_client.put_object(Bucket=S3_BUCKET,
+                             Key=get_memory_path(session_id),
+                             Body=json.dumps(messages, indent=2),
+                             ContentType='application/json')
+    else:
+        # Local file storage
+        os.makedirs(MEMORY_DIR, exist_ok=True)
+        file_path = os.path.join(MEMORY_DIR, get_memory_path(session_id))
+        with open(file_path, "w") as f:
+            json.dump(messages, f, indent=2)
 
 # Request/Response models
 class ChatRequest(BaseModel):
@@ -62,13 +84,22 @@ class ChatResponse(BaseModel):
     response: str
     session_id: str
 
-@app.post("/")
+class Message(BaseModel):
+    role: str
+    content: str
+    timestamp: str
+
+@app.get("/")
 async def root():
-    return {"message": "AI Digital Twin API with Memory"}
+    return {
+        "message": "AI Digital Twin API",
+        "memory_enabled": True,
+        "storage": "S3" if USE_S3 else "local"
+    }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "use_s3": USE_S3}
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
@@ -80,7 +111,7 @@ async def chat(request: ChatRequest):
         conversation = load_conversation(session_id)
 
         # Build messages with history
-        messages = [{"role": "system", "content": PERSONALITY}]
+        messages = [{"role": "system", "content": prompt()}]
 
         # Add conversation history
         for entry in conversation:
