@@ -5,4 +5,4 @@ python-dotenv
 python-multipart
 boto3
 pypdf
-magnum
+mangum
