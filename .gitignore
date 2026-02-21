@@ -131,6 +131,10 @@ Thumbs.db
 *.swp
 *~
 
+# AWS Lambda / serverless
+lambda-deployment.zip
+lambda-package/
+
 # ---------- Security / Certificates ----------
 # Keys / certificates
 *.pem
