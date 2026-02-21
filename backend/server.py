@@ -113,33 +113,42 @@ async def chat(request: ChatRequest):
         # Build messages with history
         messages = [{"role": "system", "content": prompt()}]
 
-        # Add conversation history
-        for entry in conversation:
-            messages.append(entry)
+        # Add conversation history (keep last 10 messages for context window)
+        for entry in conversation[-10:]:
+            messages.append({"role": entry["role"], "content": entry["content"]})
 
         # Add current user message
         messages.append({"role": "user", "content": request.message})
 
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4.1-mini",
+            model="gpt-4o-mini",
             messages=messages
         )
 
         assistant_response = response.choices[0].message.content
 
         # Update conversation history
-        conversation.append({"role": "user", "content": request.message})
-        conversation.append({"role": "assistant", "content": assistant_response})
+        conversation.append(
+            {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
+        )
+        conversation.append(
+            {
+                "role": "assistant",
+                "content": assistant_response,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
         # Save updated conversation
         save_conversation(session_id, conversation)
 
         return ChatResponse(
-            response=response.choices[0].message.content,
+            response=assistant_response,
             session_id=session_id
         )
     except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/sessions")
