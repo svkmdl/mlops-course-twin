@@ -98,7 +98,7 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
     # Add system prompt as the first message (Bedrock convention)
     messages.append({
         "role": "user",
-        "content": [{"text": f"System prompt: {prompt()}"}]
+        "content": [{"text": f"System: {prompt()}"}]
     })
 
     # Add conversation history (keep last 10 messages for context window)
@@ -131,8 +131,11 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
     except ClientError as e:
         error_code = e.response['Error']['Code']
         if error_code == 'ValidationException':
+            # Handle message format issues
+            print(f"Validation error from Bedrock: {str(e)}")
             raise HTTPException(status_code=400, detail="Invalid message format to Bedrock")
         elif error_code == 'AccessDeniedException':
+            print(f"Access denied to Bedrock model: {str(e)}")
             raise HTTPException(status_code=403, detail="Access denied to Bedrock model")
         else:
             print(f"Bedrock error: {str(e)}")
