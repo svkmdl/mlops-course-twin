@@ -125,6 +125,8 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
                 "topP": 0.9
             }
         )
+        # Extract the response text
+        return response["output"]["message"]["content"][0]["text"]
 
     except ClientError as e:
         error_code = e.response['Error']['Code']
