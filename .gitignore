@@ -43,6 +43,16 @@ memory/*
 .vercel
 .now
 
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+*.tfvars
+!terraform.tfvars
+!prod.tfvars
+
 # next telemetry
 .next/telemetry
 
