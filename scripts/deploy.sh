@@ -21,6 +21,18 @@ else
   terraform workspace select "$ENVIRONMENT"
 fi
 
+# Import existing CloudFront distribution (if not already imported)
+CLOUDFRONT_ID="E1JH9Z971VWI4H"
+
+echo "🔎 Checking CloudFront import..."
+
+if ! terraform state show aws_cloudfront_distribution.main >/dev/null 2>&1; then
+  echo "📥 Importing existing CloudFront distribution..."
+  terraform import aws_cloudfront_distribution.main "$CLOUDFRONT_ID"
+else
+  echo "✅ CloudFront already managed by Terraform"
+fi
+
 # Use prod.tfvars for production environment
 if [ "$ENVIRONMENT" = "prod" ]; then
   TF_APPLY_CMD=(terraform apply -var-file=prod.tfvars -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
