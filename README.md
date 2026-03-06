@@ -179,7 +179,7 @@ For local development, change it to:
 fetch('http://localhost:8000/chat', ...)
 ```
 
-> Tip: A nice improvement is to refactor this into an env var (e.g. `NEXT_PUBLIC_API_BASE_URL`) so you don’t edit code between environments.
+> Tip: A nice improvement is to refactor this into an env var (e.g. `NEXT_PUBLIC_API_BASE_URL`) so you don’t edit code between environments. (DONE)
 
 ---
 
