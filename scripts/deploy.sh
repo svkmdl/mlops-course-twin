@@ -33,6 +33,9 @@ else
   echo "✅ CloudFront already managed by Terraform"
 fi
 
+echo "🔍 Running Terraform plan (migration safety check)..."
+terraform plan -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT"
+
 # Use prod.tfvars for production environment
 if [ "$ENVIRONMENT" = "prod" ]; then
   TF_APPLY_CMD=(terraform apply -var-file=prod.tfvars -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
