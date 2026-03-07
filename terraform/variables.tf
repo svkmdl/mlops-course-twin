@@ -19,7 +19,7 @@ variable "environment" {
 variable "bedrock_model_id" {
   description = "ID of the Bedrock model to use"
   type        = string
-  default = "amazon.nova-micro-v1:0"
+  default = "eu.amazon.nova-micro-v1:0"
 }
 
 variable "lambda_timeout" {
