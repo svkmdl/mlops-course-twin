@@ -209,13 +209,6 @@ resource "aws_lambda_permission" "api_gw" {
 resource "aws_cloudfront_distribution" "main" {
   aliases = local.aliases
 
-  lifecycle {
-    prevent_destroy = true
-    # ignore_changes = all
-  }
-
-  web_acl_id = "arn:aws:wafv2:us-east-1:339518194039:global/webacl/CreatedByCloudFront-ca9d05f2/47ebce75-e482-481a-8fa5-bc6ba00a2ddc"
-
   viewer_certificate {
     acm_certificate_arn            = var.use_custom_domain ? aws_acm_certificate.site[0].arn : null
     cloudfront_default_certificate = var.use_custom_domain ? false : true
@@ -245,11 +238,19 @@ resource "aws_cloudfront_distribution" "main" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-${aws_s3_bucket.frontend.id}"
 
-    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" #
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
     viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
   }
 
-  # GDPR compliance: Block access from the EU and EEA regions if not using a custom domain
   restrictions {
     geo_restriction {
       restriction_type = "none"
