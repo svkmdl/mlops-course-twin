@@ -25,6 +25,7 @@ yarn-error.log*
 
 # next.js build / caches
 .next/
+*.log
 .next/cache
 .out/
 out/
@@ -52,6 +53,7 @@ terraform.tfstate.d/
 *.tfvars
 !terraform.tfvars
 !prod.tfvars
+*.tfvars.secret
 
 # next telemetry
 .next/telemetry
@@ -64,6 +66,7 @@ next-env.d.ts
 # ---------- Python / Backend (backend/) ----------
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 
@@ -98,6 +101,7 @@ htmlcov/
 .env
 .env.*
 .env.local
+!.env.example
 
 # Jupyter
 .ipynb_checkpoints/
@@ -140,6 +144,9 @@ Thumbs.db
 # Temporary files
 *.swp
 *~
+
+# AWS
+.aws/
 
 # AWS Lambda / serverless
 lambda-deployment.zip
