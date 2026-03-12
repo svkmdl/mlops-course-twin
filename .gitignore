@@ -119,7 +119,6 @@ htmlcov/
 *.npz
 models/
 checkpoints/
-data/
 mlruns/
 
 # TensorBoard / logs

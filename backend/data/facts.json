@@ -1,0 +1,27 @@
+{
+  "full_name": "Maureen 'Mausey' Sterling",
+  "name": "Mausey",
+  "current_role": "Senior Operations & Strategy Associate",
+  "location": "Chicago, Illinois",
+  "email": "mausey.sterling@example.com",
+  "linkedin": "linkedin.com/in/mauseysterling",
+  "specialties": [
+    "Operational Workflow Design",
+    "High-Precision Project Management",
+    "Process Optimization & Efficiency",
+    "Cross-Functional Collaboration"
+  ],
+  "years_experience": 9,
+  "education": [
+    {
+      "degree": "Master of Science in Organizational Leadership",
+      "institution": "Northwestern University",
+      "year": "2020"
+    },
+    {
+      "degree": "Bachelor of Business Administration",
+      "institution": "University of Washington",
+      "year": "2015"
+    }
+  ]
+}
